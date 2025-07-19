@@ -47,12 +47,12 @@ MarkdownテキストをAST解析によりBacklog記法に変換するツール�
 
 ## Phase 2: 基本変換ルール（中優先度）
 
-### ⬜ Task 2.1: 見出し変換
+### ✅ Task 2.1: 見出し変換
 **変換ルール**: `# H1` → `* H1`, `## H2` → `** H2`
-- [ ] **(Red)** 見出し変換テスト作成
-- [ ] **(Green)** goldmark AST使用の見出し変換実装
-- [ ] **(Refactor)** AST Walker パターン整理
-- [ ] **(Commit)**
+- [x] **(Red)** 見出し変換テスト作成
+- [x] **(Green)** goldmark AST使用の見出し変換実装
+- [x] **(Refactor)** AST Walker パターン整理
+- [x] **(Commit)**
 
 ### ⬜ Task 2.2: 太字変換
 **変換ルール**: `**bold**` → `''bold''`

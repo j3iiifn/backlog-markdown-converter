@@ -29,6 +29,30 @@ func TestConvert(t *testing.T) {
 			expected: "Line 1\nLine 2\nLine 3",
 			hasError: false,
 		},
+		{
+			name:     "H1見出し変換",
+			input:    "# 見出し1",
+			expected: "* 見出し1",
+			hasError: false,
+		},
+		{
+			name:     "H2見出し変換",
+			input:    "## 見出し2",
+			expected: "** 見出し2",
+			hasError: false,
+		},
+		{
+			name:     "H3見出し変換",
+			input:    "### 見出し3",
+			expected: "*** 見出し3",
+			hasError: false,
+		},
+		{
+			name:     "複数見出し変換",
+			input:    "# 見出し1\n## 見出し2\n### 見出し3",
+			expected: "* 見出し1\n** 見出し2\n*** 見出し3",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
