@@ -6,6 +6,8 @@ import (
 
 	"github.com/yuin/goldmark"
 	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/extension"
+	gast "github.com/yuin/goldmark/extension/ast"
 	"github.com/yuin/goldmark/text"
 )
 
@@ -15,8 +17,8 @@ func Convert(markdown string) (string, error) {
 		return "", nil
 	}
 
-	// goldmarkでMarkdownをパース
-	md := goldmark.New()
+	// goldmarkでMarkdownをパース（GFM拡張を有効化）
+	md := goldmark.New(goldmark.WithExtensions(extension.GFM))
 	reader := text.NewReader([]byte(markdown))
 	document := md.Parser().Parse(reader)
 
@@ -38,8 +40,14 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkSkipChildren, nil
 			}
 
+		case *gast.Strikethrough:
+			if entering {
+				writeStrikethrough(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) {
 				writeText(&buffer, node, source)
 			}
 
@@ -132,6 +140,30 @@ func isChildOfEmphasis(node ast.Node) bool {
 	parent := node.Parent()
 	for parent != nil {
 		if _, ok := parent.(*ast.Emphasis); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// writeStrikethrough は打ち消し線ノードをBacklog記法で出力します
+func writeStrikethrough(buffer *bytes.Buffer, strikethrough ast.Node, source []byte) {
+	buffer.WriteString("%%")
+	// 打ち消し線内のテキスト内容を取得
+	for child := strikethrough.FirstChild(); child != nil; child = child.NextSibling() {
+		if textNode, ok := child.(*ast.Text); ok {
+			buffer.Write(textNode.Segment.Value(source))
+		}
+	}
+	buffer.WriteString("%%")
+}
+
+// isChildOfStrikethrough はノードが打ち消し線の子要素かどうかを判定します
+func isChildOfStrikethrough(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*gast.Strikethrough); ok {
 			return true
 		}
 		parent = parent.Parent()

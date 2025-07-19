@@ -89,6 +89,24 @@ func TestConvert(t *testing.T) {
 			expected: "通常のテキストと'''斜体'''の混合",
 			hasError: false,
 		},
+		{
+			name:     "打ち消し線変換",
+			input:    "~~打ち消し線のテキスト~~",
+			expected: "%%打ち消し線のテキスト%%",
+			hasError: false,
+		},
+		{
+			name:     "複数打ち消し線変換",
+			input:    "~~打ち消し1~~ と ~~打ち消し2~~",
+			expected: "%%打ち消し1%% と %%打ち消し2%%",
+			hasError: false,
+		},
+		{
+			name:     "打ち消し線と通常テキスト混合",
+			input:    "通常のテキストと~~打ち消し線~~の混合",
+			expected: "通常のテキストと%%打ち消し線%%の混合",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
