@@ -119,3 +119,21 @@ docs: update README with installation instructions
 - `.github/workflows/ci.yml`のGitHub Actionsワークフロー
 - 自動チェック: gofmt, golangci-lint, go test
 - gitタグでのクロスプラットフォームバイナリリリース用GoReleaser
+
+## タスク進捗管理
+
+### 進捗管理ルール
+`doc/md2backlog/implementation-tasks.md` でタスク進捗を管理する：
+
+**タスクレベル**（メインタスク）:
+- 未着手: `⬜ Task X.Y: タスク名`
+- 完了: `✅ Task X.Y: タスク名`
+
+**サブタスクレベル**（TDDステップ）:
+- 未着手: `- [ ] (Red/Green/Refactor) 作業内容`
+- 完了: `- [x] (Red/Green/Refactor) 作業内容`
+
+### 進捗更新タイミング
+- TDDの各ステップ（Red/Green/Refactor）完了時にサブタスクを更新
+- メインタスク完了時にタスクレベルを更新
+- コミット前に必ず進捗を最新状態に更新
