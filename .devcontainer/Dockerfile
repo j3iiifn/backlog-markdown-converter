@@ -3,7 +3,7 @@ FROM node:20
 ARG TZ
 ENV TZ="$TZ"
 
-# Install basic development tools and iptables/ipset
+# Install basic development tools, Go, and iptables/ipset
 RUN apt update && apt install -y less \
   git \
   procps \
@@ -19,7 +19,22 @@ RUN apt update && apt install -y less \
   iproute2 \
   dnsutils \
   aggregate \
-  jq
+  jq \
+  wget \
+  curl \
+  build-essential
+
+# Install Go (latest version 1.24.5) - auto-detect architecture
+RUN ARCH=$(dpkg --print-architecture) && \
+  if [ "$ARCH" = "amd64" ]; then GOARCH="amd64"; else GOARCH="arm64"; fi && \
+  wget -O go.tar.gz "https://go.dev/dl/go1.24.5.linux-${GOARCH}.tar.gz" && \
+  tar -C /usr/local -xzf go.tar.gz && \
+  rm go.tar.gz
+
+# Set Go environment variables
+ENV GOROOT=/usr/local/go
+ENV GOPATH=/home/node/go
+ENV PATH=$PATH:$GOROOT/bin:$GOPATH/bin
 
 # Ensure default node user has access to /usr/local/share
 RUN mkdir -p /usr/local/share/npm-global && \
@@ -36,9 +51,9 @@ RUN SNIPPET="export PROMPT_COMMAND='history -a' && export HISTFILE=/commandhisto
 # Set `DEVCONTAINER` environment variable to help with orientation
 ENV DEVCONTAINER=true
 
-# Create workspace and config directories and set permissions
-RUN mkdir -p /workspace /home/node/.claude && \
-  chown -R node:node /workspace /home/node/.claude
+# Create workspace, config and Go directories and set permissions
+RUN mkdir -p /workspace /home/node/.claude /home/node/go && \
+  chown -R node:node /workspace /home/node/.claude /home/node/go
 
 WORKDIR /workspace
 
@@ -68,6 +83,14 @@ RUN sh -c "$(wget -O- https://github.com/deluan/zsh-in-docker/releases/download/
 
 # Install Claude
 RUN npm install -g @anthropic-ai/claude-code
+
+# Install Go tools as node user
+USER node
+RUN go install golang.org/x/tools/cmd/goimports@latest && \
+  go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
+
+# Switch back to root for remaining setup
+USER root
 
 # Copy and set up firewall script
 COPY init-firewall.sh /usr/local/bin/
