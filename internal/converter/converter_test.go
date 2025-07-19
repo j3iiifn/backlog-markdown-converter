@@ -127,7 +127,7 @@ func TestConvert(t *testing.T) {
 		},
 		{
 			name:     "箇条書きリストと通常テキスト混合",
-			input:    "通常のテキスト\n- アイテム1\n- アイテム2\n続きのテキスト",
+			input:    "通常のテキスト\n- アイテム1\n- アイテム2\n\n続きのテキスト",
 			expected: "通常のテキスト\n- アイテム1\n- アイテム2\n続きのテキスト",
 			hasError: false,
 		},
