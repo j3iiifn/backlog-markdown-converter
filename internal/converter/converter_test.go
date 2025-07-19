@@ -197,6 +197,30 @@ func TestConvert(t *testing.T) {
 			expected: "[[日本語サイト:https://日本語.com/パス]]",
 			hasError: false,
 		},
+		{
+			name:     "基本インラインコード変換",
+			input:    "`inline code`",
+			expected: "{code}inline code{/code}",
+			hasError: false,
+		},
+		{
+			name:     "複数インラインコード変換",
+			input:    "`code1` と `code2`",
+			expected: "{code}code1{/code} と {code}code2{/code}",
+			hasError: false,
+		},
+		{
+			name:     "インラインコードと通常テキスト混合",
+			input:    "これは`コード`です。",
+			expected: "これは{code}コード{/code}です。",
+			hasError: false,
+		},
+		{
+			name:     "日本語インラインコード",
+			input:    "`日本語のコード`",
+			expected: "{code}日本語のコード{/code}",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {

@@ -63,8 +63,14 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkSkipChildren, nil
 			}
 
+		case *ast.CodeSpan:
+			if entering {
+				writeCodeSpan(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) {
 				writeText(&buffer, node, source)
 			}
 
@@ -310,6 +316,30 @@ func isChildOfLink(node ast.Node) bool {
 	parent := node.Parent()
 	for parent != nil {
 		if _, ok := parent.(*ast.Link); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// writeCodeSpan はインラインコードノードをBacklog記法で出力します
+func writeCodeSpan(buffer *bytes.Buffer, codeSpan *ast.CodeSpan, source []byte) {
+	buffer.WriteString("{code}")
+	// インラインコード内のテキスト内容を取得
+	for child := codeSpan.FirstChild(); child != nil; child = child.NextSibling() {
+		if textNode, ok := child.(*ast.Text); ok {
+			buffer.Write(textNode.Segment.Value(source))
+		}
+	}
+	buffer.WriteString("{/code}")
+}
+
+// isChildOfCodeSpan はノードがインラインコードの子要素かどうかを判定します
+func isChildOfCodeSpan(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*ast.CodeSpan); ok {
 			return true
 		}
 		parent = parent.Parent()
