@@ -81,8 +81,14 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkSkipChildren, nil
 			}
 
+		case *gast.Table:
+			if entering {
+				writeTable(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) && !isChildOfFencedCodeBlock(node) && !isChildOfBlockquote(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) && !isChildOfFencedCodeBlock(node) && !isChildOfBlockquote(node) && !isChildOfTable(node) {
 				writeText(&buffer, node, source)
 			}
 
@@ -460,6 +466,90 @@ func isChildOfBlockquote(node ast.Node) bool {
 	parent := node.Parent()
 	for parent != nil {
 		if _, ok := parent.(*ast.Blockquote); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// writeTable はテーブルノードをBacklog記法で出力します
+func writeTable(buffer *bytes.Buffer, table ast.Node, source []byte) {
+	gfmTable := table.(*gast.Table)
+
+	// テーブルの子要素を処理
+	for child := gfmTable.FirstChild(); child != nil; child = child.NextSibling() {
+		switch childNode := child.(type) {
+		case *gast.TableHeader:
+			// ヘッダー行を出力
+			writeTableHeader(buffer, childNode, source)
+		case *gast.TableRow:
+			// データ行を出力
+			writeTableRow(buffer, childNode, source)
+		}
+	}
+
+	// テーブルの後に続く要素がある場合は改行を追加
+	if table.NextSibling() != nil {
+		buffer.WriteString("\n")
+	}
+}
+
+// writeTableHeader はテーブルヘッダーを出力します
+func writeTableHeader(buffer *bytes.Buffer, tableHeader *gast.TableHeader, source []byte) {
+	buffer.WriteString("|")
+
+	// ヘッダーセルを直接処理
+	for cell := tableHeader.FirstChild(); cell != nil; cell = cell.NextSibling() {
+		if tableCell, ok := cell.(*gast.TableCell); ok {
+			buffer.WriteString("*")
+
+			// セル内のテキストを取得
+			for cellChild := tableCell.FirstChild(); cellChild != nil; cellChild = cellChild.NextSibling() {
+				if textNode, ok := cellChild.(*ast.Text); ok {
+					text := strings.TrimSpace(string(textNode.Segment.Value(source)))
+					buffer.WriteString(text)
+				}
+			}
+
+			buffer.WriteString("|")
+		}
+	}
+	buffer.WriteString("\n")
+}
+
+// writeTableRow はテーブル行を出力します
+func writeTableRow(buffer *bytes.Buffer, tableRow *gast.TableRow, source []byte) {
+	buffer.WriteString("|")
+
+	// セル内容を出力
+	for cell := tableRow.FirstChild(); cell != nil; cell = cell.NextSibling() {
+		if tableCell, ok := cell.(*gast.TableCell); ok {
+			// セル内のテキストを取得
+			for cellChild := tableCell.FirstChild(); cellChild != nil; cellChild = cellChild.NextSibling() {
+				if textNode, ok := cellChild.(*ast.Text); ok {
+					text := strings.TrimSpace(string(textNode.Segment.Value(source)))
+					buffer.WriteString(text)
+				}
+			}
+
+			buffer.WriteString("|")
+		}
+	}
+	buffer.WriteString("\n")
+}
+
+// isChildOfTable はノードがテーブルの子要素かどうかを判定します
+func isChildOfTable(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*gast.Table); ok {
+			return true
+		}
+		if _, ok := parent.(*gast.TableRow); ok {
+			return true
+		}
+		if _, ok := parent.(*gast.TableCell); ok {
 			return true
 		}
 		parent = parent.Parent()

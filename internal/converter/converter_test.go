@@ -269,6 +269,24 @@ func TestConvert(t *testing.T) {
 			expected: "> レベル1引用\n> > レベル2引用",
 			hasError: false,
 		},
+		{
+			name:     "基本テーブル変換",
+			input:    "| ヘッダー1 | ヘッダー2 |\n|----------|----------|\n| データ1  | データ2  |",
+			expected: "|*ヘッダー1|*ヘッダー2|\n|データ1|データ2|",
+			hasError: false,
+		},
+		{
+			name:     "複数行テーブル変換",
+			input:    "| 名前 | 年齢 | 職業 |\n|------|------|------|\n| 田中 | 30   | エンジニア |\n| 佐藤 | 25   | デザイナー |",
+			expected: "|*名前|*年齢|*職業|\n|田中|30|エンジニア|\n|佐藤|25|デザイナー|",
+			hasError: false,
+		},
+		{
+			name:     "テーブルと通常テキスト混合",
+			input:    "結果一覧:\n\n| 項目 | 値 |\n|------|----|\n| A    | 1  |\n| B    | 2  |\n\n以上です。",
+			expected: "結果一覧:\n\n|*項目|*値|\n|A|1|\n|B|2|\n\n以上です。",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
