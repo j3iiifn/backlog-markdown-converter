@@ -67,7 +67,8 @@ docs: update README with installation instructions
 1. `goimports -w .` でコードフォーマット
 2. `golangci-lint run` で静的解析チェック
 3. `go test ./...` でテスト実行
-4. 全てパスしてからConventional Commits形式でコミット
+4. **タスク管理ファイル (`doc/md2backlog/implementation-tasks.md`) の進捗を最新状態に更新**
+5. 全てパスしてからConventional Commits形式でコミット
 
 ### コミット粒度
 - できるだけ細かく、意味のある単位でコミット
@@ -137,4 +138,5 @@ docs: update README with installation instructions
 ### 進捗更新タイミング
 - TDDの各ステップ（Red/Green/Refactor）完了時にサブタスクを更新
 - メインタスク完了時にタスクレベルを更新
-- コミット前に必ず進捗を最新状態に更新
+- **コミット前に必ずタスク管理ファイルの進捗を更新してからコミットに含める**
+- タスク管理ファイルの更新はコード変更と同一コミットに含める
