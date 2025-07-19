@@ -54,12 +54,12 @@ MarkdownテキストをAST解析によりBacklog記法に変換するツール�
 - [x] **(Refactor)** AST Walker パターン整理
 - [x] **(Commit)**
 
-### ⬜ Task 2.2: 太字変換
+### ✅ Task 2.2: 太字変換
 **変換ルール**: `**bold**` → `''bold''`
-- [ ] **(Red)** 太字変換テスト作成
-- [ ] **(Green)** 太字変換ロジック実装
-- [ ] **(Refactor)** コード整理
-- [ ] **(Commit)**
+- [x] **(Red)** 太字変換テスト作成
+- [x] **(Green)** 太字変換ロジック実装
+- [x] **(Refactor)** コード整理
+- [x] **(Commit)**
 
 ### ⬜ Task 2.3: 斜体変換
 **変換ルール**: `*italic*` → `'''italic'''`

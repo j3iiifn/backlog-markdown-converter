@@ -53,6 +53,24 @@ func TestConvert(t *testing.T) {
 			expected: "* 見出し1\n** 見出し2\n*** 見出し3",
 			hasError: false,
 		},
+		{
+			name:     "太字変換",
+			input:    "**太字のテキスト**",
+			expected: "''太字のテキスト''",
+			hasError: false,
+		},
+		{
+			name:     "複数太字変換",
+			input:    "**太字1** と **太字2**",
+			expected: "''太字1'' と ''太字2''",
+			hasError: false,
+		},
+		{
+			name:     "太字と通常テキスト混合",
+			input:    "通常のテキストと**太字**の混合",
+			expected: "通常のテキストと''太字''の混合",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
