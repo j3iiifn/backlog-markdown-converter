@@ -68,7 +68,8 @@ docs: update README with installation instructions
 2. `golangci-lint run` で静的解析チェック
 3. `go test ./...` でテスト実行
 4. **タスク管理ファイル (`doc/md2backlog/implementation-tasks.md`) の進捗を最新状態に更新**
-5. 全てパスしてからConventional Commits形式でコミット
+5. `git add .` で変更をステージング（**注意**: `git add -A` ではなく `git add .` を使用）
+6. 全てパスしてからConventional Commits形式でコミット
 
 ### コミット粒度
 - できるだけ細かく、意味のある単位でコミット
