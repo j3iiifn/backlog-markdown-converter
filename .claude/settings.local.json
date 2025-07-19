@@ -3,7 +3,11 @@
     "allow": [
       "Bash(mkdir:*)",
       "Bash(git add:*)",
-      "Bash(git commit:*)"
+      "Bash(git commit:*)",
+      "Bash(go test:*)",
+      "Bash(go run:*)",
+      "Bash(goimports:*)",
+      "Bash(golangci-lint run:*)"
     ],
     "deny": []
   }
