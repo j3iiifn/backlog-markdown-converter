@@ -36,12 +36,12 @@ MarkdownテキストをAST解析によりBacklog記法に変換するツール�
 - [x] **(Refactor)** コード整理
 - [x] **(Commit)**
 
-### ⬜ Task 1.3: 変換関数骨格作成
+### ✅ Task 1.3: 変換関数骨格作成
 **目標**: `Convert(markdown string) (string, error)`関数の雛形
-- [ ] **(Red)** Convert関数の基本テスト作成
-- [ ] **(Green)** 文字列をそのまま返すConvert関数実装
-- [ ] **(Refactor)** パッケージ構造整理
-- [ ] **(Commit)**
+- [x] **(Red)** Convert関数の基本テスト作成
+- [x] **(Green)** 文字列をそのまま返すConvert関数実装
+- [x] **(Refactor)** パッケージ構造整理
+- [x] **(Commit)**
 
 ---
 
