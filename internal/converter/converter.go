@@ -75,13 +75,19 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkSkipChildren, nil
 			}
 
+		case *ast.Blockquote:
+			if entering {
+				writeBlockquote(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) && !isChildOfFencedCodeBlock(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) && !isChildOfFencedCodeBlock(node) && !isChildOfBlockquote(node) {
 				writeText(&buffer, node, source)
 			}
 
 		case *ast.Paragraph:
-			if !entering && node.NextSibling() != nil && !isNextSiblingList(node) {
+			if !entering && node.NextSibling() != nil && !isNextSiblingList(node) && !isChildOfBlockquote(node) {
 				buffer.WriteString("\n")
 			}
 		}
@@ -387,6 +393,73 @@ func isChildOfFencedCodeBlock(node ast.Node) bool {
 	parent := node.Parent()
 	for parent != nil {
 		if _, ok := parent.(*ast.FencedCodeBlock); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// writeBlockquote は引用ノードをBacklog記法で出力します
+func writeBlockquote(buffer *bytes.Buffer, blockquote *ast.Blockquote, source []byte) {
+	for child := blockquote.FirstChild(); child != nil; child = child.NextSibling() {
+		if paragraph, ok := child.(*ast.Paragraph); ok {
+			// パラグラフ内の各Textノードを別々の行として処理
+			isFirstText := true
+			for textChild := paragraph.FirstChild(); textChild != nil; textChild = textChild.NextSibling() {
+				if textNode, ok := textChild.(*ast.Text); ok {
+					if !isFirstText {
+						buffer.WriteString("\n")
+					}
+
+					text := string(textNode.Segment.Value(source))
+					buffer.WriteString("> " + text)
+
+					isFirstText = false
+				}
+			}
+		} else if nestedBlockquote, ok := child.(*ast.Blockquote); ok {
+			// ネストした引用を処理（改行を追加）
+			buffer.WriteString("\n")
+			processNestedBlockquote(buffer, nestedBlockquote, source, 2)
+		}
+	}
+
+	// 引用ブロックの後に続く要素がある場合は改行を追加
+	if blockquote.NextSibling() != nil {
+		buffer.WriteString("\n\n")
+	}
+}
+
+// processNestedBlockquote はネストした引用を処理します
+func processNestedBlockquote(buffer *bytes.Buffer, blockquote *ast.Blockquote, source []byte, level int) {
+	for child := blockquote.FirstChild(); child != nil; child = child.NextSibling() {
+		if paragraph, ok := child.(*ast.Paragraph); ok {
+			// パラグラフ内のテキストを取得
+			var textContent strings.Builder
+			for textChild := paragraph.FirstChild(); textChild != nil; textChild = textChild.NextSibling() {
+				if textNode, ok := textChild.(*ast.Text); ok {
+					textContent.Write(textNode.Segment.Value(source))
+				}
+			}
+
+			// 引用プレフィックスを生成
+			prefix := strings.Repeat("> ", level)
+			buffer.WriteString(prefix + textContent.String())
+
+			// 次の子要素がある場合は改行を追加
+			if child.NextSibling() != nil {
+				buffer.WriteString("\n")
+			}
+		}
+	}
+}
+
+// isChildOfBlockquote はノードが引用の子要素かどうかを判定します
+func isChildOfBlockquote(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*ast.Blockquote); ok {
 			return true
 		}
 		parent = parent.Parent()

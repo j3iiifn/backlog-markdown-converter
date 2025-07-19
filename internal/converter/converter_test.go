@@ -245,6 +245,30 @@ func TestConvert(t *testing.T) {
 			expected: "実行例:\n\n>{code:bash}\necho \"Hello\"\n{/code}<\n上記のようになります。",
 			hasError: false,
 		},
+		{
+			name:     "基本引用処理",
+			input:    "> これは引用です",
+			expected: "> これは引用です",
+			hasError: false,
+		},
+		{
+			name:     "複数行引用処理",
+			input:    "> 引用行1\n> 引用行2\n> 引用行3",
+			expected: "> 引用行1\n> 引用行2\n> 引用行3",
+			hasError: false,
+		},
+		{
+			name:     "引用と通常テキスト混合",
+			input:    "通常のテキスト\n\n> 引用部分\n\n続きのテキスト",
+			expected: "通常のテキスト\n\n> 引用部分\n\n続きのテキスト",
+			hasError: false,
+		},
+		{
+			name:     "ネスト引用処理",
+			input:    "> レベル1引用\n> > レベル2引用",
+			expected: "> レベル1引用\n> > レベル2引用",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
