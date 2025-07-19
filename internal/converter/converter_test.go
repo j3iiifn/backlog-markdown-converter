@@ -131,6 +131,30 @@ func TestConvert(t *testing.T) {
 			expected: "通常のテキスト\n- アイテム1\n- アイテム2\n続きのテキスト",
 			hasError: false,
 		},
+		{
+			name:     "ネスト箇条書きリスト（2階層）",
+			input:    "- レベル1\n  - レベル2",
+			expected: "- レベル1\n-- レベル2",
+			hasError: false,
+		},
+		{
+			name:     "ネスト箇条書きリスト（3階層）",
+			input:    "- レベル1\n  - レベル2\n    - レベル3",
+			expected: "- レベル1\n-- レベル2\n--- レベル3",
+			hasError: false,
+		},
+		{
+			name:     "ネスト箇条書きリスト（混合記号）",
+			input:    "- レベル1\n  * レベル2\n    - レベル3",
+			expected: "- レベル1\n-- レベル2\n--- レベル3",
+			hasError: false,
+		},
+		{
+			name:     "ネスト箇条書きリスト（複数項目）",
+			input:    "- レベル1-1\n  - レベル2-1\n  - レベル2-2\n- レベル1-2\n  - レベル2-3",
+			expected: "- レベル1-1\n-- レベル2-1\n-- レベル2-2\n- レベル1-2\n-- レベル2-3",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {

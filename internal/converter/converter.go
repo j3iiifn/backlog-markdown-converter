@@ -53,7 +53,8 @@ func Convert(markdown string) (string, error) {
 		case *ast.ListItem:
 			if entering {
 				writeListItem(&buffer, node, source)
-				return ast.WalkSkipChildren, nil
+				// ネストリストを含む可能性があるので、子要素も処理
+				return ast.WalkContinue, nil
 			}
 
 		case *ast.Text:
@@ -183,10 +184,14 @@ func isChildOfStrikethrough(node ast.Node) bool {
 
 // writeListItem はリストアイテムノードをBacklog記法で出力します
 func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) {
-	// すべてのリストアイテムを「-」で統一
-	buffer.WriteString("- ")
+	// ネストレベルを計算
+	nestLevel := calculateListNestLevel(listItem)
 
-	// リストアイテム内のテキスト内容を取得
+	// ネストレベルに応じてプレフィックスを生成
+	prefix := strings.Repeat("-", nestLevel)
+	buffer.WriteString(prefix + " ")
+
+	// リストアイテムの最初のテキスト内容のみを取得（ネストは別処理）
 	for child := listItem.FirstChild(); child != nil; child = child.NextSibling() {
 		switch childNode := child.(type) {
 		case *ast.Paragraph:
@@ -196,6 +201,8 @@ func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) 
 					buffer.Write(textNode.Segment.Value(source))
 				}
 			}
+			// 最初のParagraphのみ処理して終了
+			break
 		case *ast.TextBlock:
 			// TextBlockの子要素（Text）を処理
 			for grandChild := childNode.FirstChild(); grandChild != nil; grandChild = grandChild.NextSibling() {
@@ -203,9 +210,34 @@ func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) 
 					buffer.Write(textNode.Segment.Value(source))
 				}
 			}
+			// 最初のTextBlockのみ処理して終了
+			break
 		}
 	}
 	buffer.WriteString("\n")
+}
+
+// calculateListNestLevel はリストアイテムのネストレベルを計算します
+func calculateListNestLevel(listItem *ast.ListItem) int {
+	level := 1
+	parent := listItem.Parent()
+
+	for parent != nil {
+		// 親がListの場合、さらにその親のListItemを探す
+		if _, ok := parent.(*ast.List); ok {
+			grandParent := parent.Parent()
+			if _, ok := grandParent.(*ast.ListItem); ok {
+				level++
+				parent = grandParent.Parent()
+			} else {
+				break
+			}
+		} else {
+			parent = parent.Parent()
+		}
+	}
+
+	return level
 }
 
 // isChildOfListItem はノードがリストアイテムの子要素かどうかを判定します
