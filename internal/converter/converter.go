@@ -1,7 +1,12 @@
 package converter
 
 import (
+	"bytes"
 	"strings"
+
+	"github.com/yuin/goldmark"
+	"github.com/yuin/goldmark/ast"
+	"github.com/yuin/goldmark/text"
 )
 
 // Convert はMarkdownテキストをBacklog記法に変換します
@@ -10,46 +15,82 @@ func Convert(markdown string) (string, error) {
 		return "", nil
 	}
 
-	// 行ごとに処理して変換
-	lines := strings.Split(markdown, "\n")
-	var result []string
+	// goldmarkでMarkdownをパース
+	md := goldmark.New()
+	reader := text.NewReader([]byte(markdown))
+	document := md.Parser().Parse(reader)
 
-	for _, line := range lines {
-		converted := convertLine(line)
-		result = append(result, converted)
+	// ASTをウォークしてBacklog記法に変換
+	var buffer bytes.Buffer
+	source := reader.Source()
+
+	err := ast.Walk(document, func(n ast.Node, entering bool) (ast.WalkStatus, error) {
+		switch node := n.(type) {
+		case *ast.Heading:
+			if entering {
+				writeHeading(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
+		case *ast.Text:
+			if entering && !isChildOfHeading(node) {
+				writeText(&buffer, node, source)
+			}
+
+		case *ast.Paragraph:
+			if !entering && node.NextSibling() != nil {
+				buffer.WriteString("\n")
+			}
+		}
+
+		return ast.WalkContinue, nil
+	})
+
+	if err != nil {
+		return "", err
 	}
 
-	return strings.Join(result, "\n"), nil
+	result := buffer.String()
+	// 末尾の不要な改行を除去
+	result = strings.TrimSuffix(result, "\n")
+
+	return result, nil
 }
 
-// convertLine は1行のMarkdownをBacklog記法に変換します
-func convertLine(line string) string {
-	// 見出し変換
-	if strings.HasPrefix(line, "#") {
-		return convertHeading(line)
-	}
+// writeHeading は見出しノードをBacklog記法で出力します
+func writeHeading(buffer *bytes.Buffer, heading *ast.Heading, source []byte) {
+	level := heading.Level
+	prefix := strings.Repeat("*", level)
+	buffer.WriteString(prefix + " ")
 
-	// 他の変換ルールはここに追加（将来の実装）
-
-	// 変換対象でない場合はそのまま返す
-	return line
-}
-
-// convertHeading は見出し行をBacklog記法に変換します
-func convertHeading(line string) string {
-	level := 0
-	for _, char := range line {
-		if char == '#' {
-			level++
-		} else {
-			break
+	// 見出しのテキスト内容を取得
+	for child := heading.FirstChild(); child != nil; child = child.NextSibling() {
+		if textNode, ok := child.(*ast.Text); ok {
+			buffer.Write(textNode.Segment.Value(source))
 		}
 	}
+	buffer.WriteString("\n")
+}
 
-	// # の後のテキストを取得（先頭空白も除去）
-	text := strings.TrimSpace(line[level:])
+// writeText はテキストノードを出力します（改行も含めて）
+func writeText(buffer *bytes.Buffer, textNode *ast.Text, source []byte) {
+	segment := textNode.Segment
+	buffer.Write(segment.Value(source))
 
-	// Backlog記法に変換: # → *, ## → **, ### → ***
-	prefix := strings.Repeat("*", level)
-	return prefix + " " + text
+	// セグメント後に改行があるかチェック
+	if segment.Stop < len(source) && source[segment.Stop] == '\n' {
+		buffer.WriteString("\n")
+	}
+}
+
+// isChildOfHeading はノードが見出しの子要素かどうかを判定します
+func isChildOfHeading(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*ast.Heading); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
 }
