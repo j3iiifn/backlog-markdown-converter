@@ -71,6 +71,24 @@ func TestConvert(t *testing.T) {
 			expected: "通常のテキストと''太字''の混合",
 			hasError: false,
 		},
+		{
+			name:     "斜体変換",
+			input:    "*斜体のテキスト*",
+			expected: "'''斜体のテキスト'''",
+			hasError: false,
+		},
+		{
+			name:     "複数斜体変換",
+			input:    "*斜体1* と *斜体2*",
+			expected: "'''斜体1''' と '''斜体2'''",
+			hasError: false,
+		},
+		{
+			name:     "斜体と通常テキスト混合",
+			input:    "通常のテキストと*斜体*の混合",
+			expected: "通常のテキストと'''斜体'''の混合",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {

@@ -89,10 +89,11 @@ func writeText(buffer *bytes.Buffer, textNode *ast.Text, source []byte) {
 	}
 }
 
-// writeEmphasis は太字ノードをBacklog記法で出力します
+// writeEmphasis は太字・斜体ノードをBacklog記法で出力します
 func writeEmphasis(buffer *bytes.Buffer, emphasis *ast.Emphasis, source []byte) {
-	// 太字の場合（Level=2）のみ変換、斜体（Level=1）は後で実装
-	if emphasis.Level == 2 {
+	switch emphasis.Level {
+	case 2:
+		// 太字の場合
 		buffer.WriteString("''")
 		// 太字内のテキスト内容を取得
 		for child := emphasis.FirstChild(); child != nil; child = child.NextSibling() {
@@ -101,6 +102,16 @@ func writeEmphasis(buffer *bytes.Buffer, emphasis *ast.Emphasis, source []byte) 
 			}
 		}
 		buffer.WriteString("''")
+	case 1:
+		// 斜体の場合
+		buffer.WriteString("'''")
+		// 斜体内のテキスト内容を取得
+		for child := emphasis.FirstChild(); child != nil; child = child.NextSibling() {
+			if textNode, ok := child.(*ast.Text); ok {
+				buffer.Write(textNode.Segment.Value(source))
+			}
+		}
+		buffer.WriteString("'''")
 	}
 }
 
