@@ -187,8 +187,18 @@ func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) 
 	// ネストレベルを計算
 	nestLevel := calculateListNestLevel(listItem)
 
-	// ネストレベルに応じてプレフィックスを生成
-	prefix := strings.Repeat("-", nestLevel)
+	// 親リストが番号付きリストかどうかを判定
+	isOrderedList := isInOrderedList(listItem)
+
+	// プレフィックスを生成
+	var prefix string
+	if isOrderedList {
+		// 番号付きリストの場合は「+」を使用（ネスト関係なく平坦化）
+		prefix = "+"
+	} else {
+		// 通常のリストの場合はネストレベルに応じて「-」を繰り返し
+		prefix = strings.Repeat("-", nestLevel)
+	}
 	buffer.WriteString(prefix + " ")
 
 	// リストアイテムの最初のテキスト内容のみを取得（ネストは別処理）
@@ -202,7 +212,8 @@ func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) 
 				}
 			}
 			// 最初のParagraphのみ処理して終了
-			break
+			buffer.WriteString("\n")
+			return
 		case *ast.TextBlock:
 			// TextBlockの子要素（Text）を処理
 			for grandChild := childNode.FirstChild(); grandChild != nil; grandChild = grandChild.NextSibling() {
@@ -211,7 +222,8 @@ func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) 
 				}
 			}
 			// 最初のTextBlockのみ処理して終了
-			break
+			buffer.WriteString("\n")
+			return
 		}
 	}
 	buffer.WriteString("\n")
@@ -257,4 +269,16 @@ func isNextSiblingList(node ast.Node) bool {
 	next := node.NextSibling()
 	_, ok := next.(*ast.List)
 	return ok
+}
+
+// isInOrderedList はリストアイテムが番号付きリストの中にあるかどうかを判定します
+func isInOrderedList(listItem *ast.ListItem) bool {
+	parent := listItem.Parent()
+	for parent != nil {
+		if list, ok := parent.(*ast.List); ok {
+			return list.IsOrdered()
+		}
+		parent = parent.Parent()
+	}
+	return false
 }

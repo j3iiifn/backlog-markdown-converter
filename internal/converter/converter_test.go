@@ -155,6 +155,24 @@ func TestConvert(t *testing.T) {
 			expected: "- レベル1-1\n-- レベル2-1\n-- レベル2-2\n- レベル1-2\n-- レベル2-3",
 			hasError: false,
 		},
+		{
+			name:     "番号付きリスト（単一階層）",
+			input:    "1. アイテム1\n2. アイテム2\n3. アイテム3",
+			expected: "+ アイテム1\n+ アイテム2\n+ アイテム3",
+			hasError: false,
+		},
+		{
+			name:     "番号付きリスト（ネスト）",
+			input:    "1. レベル1\n   1. レベル2\n   2. レベル2-2\n2. レベル1-2",
+			expected: "+ レベル1\n+ レベル2\n+ レベル2-2\n+ レベル1-2",
+			hasError: false,
+		},
+		{
+			name:     "番号付きリストと通常テキスト混合",
+			input:    "通常のテキスト\n1. アイテム1\n2. アイテム2\n\n続きのテキスト",
+			expected: "通常のテキスト\n+ アイテム1\n+ アイテム2\n続きのテキスト",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
