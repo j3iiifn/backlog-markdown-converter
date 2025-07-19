@@ -107,6 +107,30 @@ func TestConvert(t *testing.T) {
 			expected: "通常のテキストと%%打ち消し線%%の混合",
 			hasError: false,
 		},
+		{
+			name:     "単一階層箇条書きリスト（ハイフン）",
+			input:    "- アイテム1\n- アイテム2\n- アイテム3",
+			expected: "- アイテム1\n- アイテム2\n- アイテム3",
+			hasError: false,
+		},
+		{
+			name:     "単一階層箇条書きリスト（アスタリスク）",
+			input:    "* アイテム1\n* アイテム2\n* アイテム3",
+			expected: "- アイテム1\n- アイテム2\n- アイテム3",
+			hasError: false,
+		},
+		{
+			name:     "単一階層箇条書きリスト混合記号",
+			input:    "- アイテム1\n* アイテム2\n- アイテム3",
+			expected: "- アイテム1\n- アイテム2\n- アイテム3",
+			hasError: false,
+		},
+		{
+			name:     "箇条書きリストと通常テキスト混合",
+			input:    "通常のテキスト\n- アイテム1\n- アイテム2\n続きのテキスト",
+			expected: "通常のテキスト\n- アイテム1\n- アイテム2\n続きのテキスト",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {

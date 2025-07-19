@@ -46,13 +46,23 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkSkipChildren, nil
 			}
 
+		case *ast.List:
+			// リストは子要素（ListItem）の処理に任せる
+			// 何もしない
+
+		case *ast.ListItem:
+			if entering {
+				writeListItem(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) {
 				writeText(&buffer, node, source)
 			}
 
 		case *ast.Paragraph:
-			if !entering && node.NextSibling() != nil {
+			if !entering && node.NextSibling() != nil && !isNextSiblingList(node) {
 				buffer.WriteString("\n")
 			}
 		}
@@ -169,4 +179,50 @@ func isChildOfStrikethrough(node ast.Node) bool {
 		parent = parent.Parent()
 	}
 	return false
+}
+
+// writeListItem はリストアイテムノードをBacklog記法で出力します
+func writeListItem(buffer *bytes.Buffer, listItem *ast.ListItem, source []byte) {
+	// すべてのリストアイテムを「-」で統一
+	buffer.WriteString("- ")
+
+	// リストアイテム内のテキスト内容を取得
+	for child := listItem.FirstChild(); child != nil; child = child.NextSibling() {
+		switch childNode := child.(type) {
+		case *ast.Paragraph:
+			// Paragraphの子要素（Text）を処理
+			for grandChild := childNode.FirstChild(); grandChild != nil; grandChild = grandChild.NextSibling() {
+				if textNode, ok := grandChild.(*ast.Text); ok {
+					buffer.Write(textNode.Segment.Value(source))
+				}
+			}
+		case *ast.TextBlock:
+			// TextBlockの子要素（Text）を処理
+			for grandChild := childNode.FirstChild(); grandChild != nil; grandChild = grandChild.NextSibling() {
+				if textNode, ok := grandChild.(*ast.Text); ok {
+					buffer.Write(textNode.Segment.Value(source))
+				}
+			}
+		}
+	}
+	buffer.WriteString("\n")
+}
+
+// isChildOfListItem はノードがリストアイテムの子要素かどうかを判定します
+func isChildOfListItem(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*ast.ListItem); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// isNextSiblingList は次の兄弟ノードがListかどうかを判定します
+func isNextSiblingList(node ast.Node) bool {
+	next := node.NextSibling()
+	_, ok := next.(*ast.List)
+	return ok
 }
