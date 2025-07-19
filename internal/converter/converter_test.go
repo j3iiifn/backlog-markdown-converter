@@ -221,6 +221,30 @@ func TestConvert(t *testing.T) {
 			expected: "{code}日本語のコード{/code}",
 			hasError: false,
 		},
+		{
+			name:     "基本コードブロック変換",
+			input:    "```\ncode line 1\ncode line 2\n```",
+			expected: ">{code}\ncode line 1\ncode line 2\n{/code}<",
+			hasError: false,
+		},
+		{
+			name:     "言語指定コードブロック変換",
+			input:    "```go\nfunc main() {\n  fmt.Println(\"Hello\")\n}\n```",
+			expected: ">{code:go}\nfunc main() {\n  fmt.Println(\"Hello\")\n}\n{/code}<",
+			hasError: false,
+		},
+		{
+			name:     "複数コードブロック変換",
+			input:    "```javascript\nconsole.log(\"Hello\");\n```\n\nテキスト\n\n```python\nprint(\"Hello\")\n```",
+			expected: ">{code:javascript}\nconsole.log(\"Hello\");\n{/code}<\nテキスト\n\n>{code:python}\nprint(\"Hello\")\n{/code}<",
+			hasError: false,
+		},
+		{
+			name:     "コードブロックと通常テキスト混合",
+			input:    "実行例:\n```bash\necho \"Hello\"\n```\n上記のようになります。",
+			expected: "実行例:\n\n>{code:bash}\necho \"Hello\"\n{/code}<\n上記のようになります。",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {

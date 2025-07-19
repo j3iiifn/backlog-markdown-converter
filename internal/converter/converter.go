@@ -69,8 +69,14 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkSkipChildren, nil
 			}
 
+		case *ast.FencedCodeBlock:
+			if entering {
+				writeFencedCodeBlock(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) && !isChildOfCodeSpan(node) && !isChildOfFencedCodeBlock(node) {
 				writeText(&buffer, node, source)
 			}
 
@@ -340,6 +346,47 @@ func isChildOfCodeSpan(node ast.Node) bool {
 	parent := node.Parent()
 	for parent != nil {
 		if _, ok := parent.(*ast.CodeSpan); ok {
+			return true
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// writeFencedCodeBlock はコードブロックノードをBacklog記法で出力します
+func writeFencedCodeBlock(buffer *bytes.Buffer, codeBlock *ast.FencedCodeBlock, source []byte) {
+	// 開始タグ
+	buffer.WriteString(">{code")
+
+	// 言語指定がある場合
+	if codeBlock.Language(source) != nil {
+		lang := string(codeBlock.Language(source))
+		if lang != "" {
+			buffer.WriteString(":" + lang)
+		}
+	}
+	buffer.WriteString("}\n")
+
+	// コードブロックの内容を出力
+	for i := 0; i < codeBlock.Lines().Len(); i++ {
+		line := codeBlock.Lines().At(i)
+		buffer.Write(line.Value(source))
+	}
+
+	// 終了タグ
+	buffer.WriteString("{/code}<")
+
+	// 次の兄弟ノードがある場合は改行を追加
+	if codeBlock.NextSibling() != nil {
+		buffer.WriteString("\n")
+	}
+}
+
+// isChildOfFencedCodeBlock はノードがコードブロックの子要素かどうかを判定します
+func isChildOfFencedCodeBlock(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*ast.FencedCodeBlock); ok {
 			return true
 		}
 		parent = parent.Parent()
