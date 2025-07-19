@@ -96,12 +96,12 @@ MarkdownテキストをAST解析によりBacklog記法に変換するツール�
 - [x] **(Refactor)** コード整理
 - [x] **(Commit)**
 
-### ⬜ Task 2.8: リンク変換
+### ✅ Task 2.8: リンク変換
 **変換ルール**: `[Link](URL)` → `[[Link:URL]]`
-- [ ] **(Red)** リンク変換テスト作成
-- [ ] **(Green)** リンク変換ロジック実装
-- [ ] **(Refactor)** コード整理
-- [ ] **(Commit)**
+- [x] **(Red)** リンク変換テスト作成
+- [x] **(Green)** リンク変換ロジック実装
+- [x] **(Refactor)** コード整理
+- [x] **(Commit)**
 
 ### ⬜ Task 2.9: インラインコード変換
 **変換ルール**: `` `inline code` `` → `{code}inline code{/code}`

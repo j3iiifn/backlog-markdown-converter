@@ -57,8 +57,14 @@ func Convert(markdown string) (string, error) {
 				return ast.WalkContinue, nil
 			}
 
+		case *ast.Link:
+			if entering {
+				writeLink(&buffer, node, source)
+				return ast.WalkSkipChildren, nil
+			}
+
 		case *ast.Text:
-			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) {
+			if entering && !isChildOfHeading(node) && !isChildOfEmphasis(node) && !isChildOfStrikethrough(node) && !isChildOfListItem(node) && !isChildOfLink(node) {
 				writeText(&buffer, node, source)
 			}
 
@@ -277,6 +283,34 @@ func isInOrderedList(listItem *ast.ListItem) bool {
 	for parent != nil {
 		if list, ok := parent.(*ast.List); ok {
 			return list.IsOrdered()
+		}
+		parent = parent.Parent()
+	}
+	return false
+}
+
+// writeLink はリンクノードをBacklog記法で出力します
+func writeLink(buffer *bytes.Buffer, link *ast.Link, source []byte) {
+	buffer.WriteString("[[")
+
+	// リンクテキストを取得
+	for child := link.FirstChild(); child != nil; child = child.NextSibling() {
+		if textNode, ok := child.(*ast.Text); ok {
+			buffer.Write(textNode.Segment.Value(source))
+		}
+	}
+
+	buffer.WriteString(":")
+	buffer.Write(link.Destination)
+	buffer.WriteString("]]")
+}
+
+// isChildOfLink はノードがリンクの子要素かどうかを判定します
+func isChildOfLink(node ast.Node) bool {
+	parent := node.Parent()
+	for parent != nil {
+		if _, ok := parent.(*ast.Link); ok {
+			return true
 		}
 		parent = parent.Parent()
 	}

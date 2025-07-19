@@ -173,6 +173,30 @@ func TestConvert(t *testing.T) {
 			expected: "通常のテキスト\n+ アイテム1\n+ アイテム2\n続きのテキスト",
 			hasError: false,
 		},
+		{
+			name:     "基本リンク変換",
+			input:    "[リンクテキスト](http://example.com)",
+			expected: "[[リンクテキスト:http://example.com]]",
+			hasError: false,
+		},
+		{
+			name:     "複数リンク変換",
+			input:    "[リンク1](http://example1.com) と [リンク2](http://example2.com)",
+			expected: "[[リンク1:http://example1.com]] と [[リンク2:http://example2.com]]",
+			hasError: false,
+		},
+		{
+			name:     "リンクと通常テキスト混合",
+			input:    "これは[リンク](http://example.com)です。",
+			expected: "これは[[リンク:http://example.com]]です。",
+			hasError: false,
+		},
+		{
+			name:     "日本語URLのリンク",
+			input:    "[日本語サイト](https://日本語.com/パス)",
+			expected: "[[日本語サイト:https://日本語.com/パス]]",
+			hasError: false,
+		},
 	}
 
 	for _, tt := range tests {
