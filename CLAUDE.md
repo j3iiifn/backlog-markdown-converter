@@ -88,10 +88,11 @@ docs: update README with installation instructions
 - **コンバーター**: `internal/converter`パッケージのコアロジック、`Convert(markdown string) (string, error)`関数
 
 ### TDD開発プロセス
-厳密なRed-Green-Refactorサイクルに従う：
+厳密なRed-Green-Refactorサイクルに従い、**各タスク完了時に必ずコミット**：
 1. **Red**: 最小機能の失敗テストを書く
 2. **Green**: テストを通す最小限のコードを書く
 3. **Refactor**: テストを通した状態でクリーンアップ
+4. **Commit**: 品質チェック後にConventional Commits形式でコミット
 
 ### 変換ルール実装順序
 1. バージョンコマンド (`--version`)
