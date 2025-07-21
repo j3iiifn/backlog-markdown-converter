@@ -93,7 +93,7 @@ func Convert(markdown string) (string, error) {
 			}
 
 		case *ast.Paragraph:
-			if !entering && node.NextSibling() != nil && !isNextSiblingList(node) && !isChildOfBlockquote(node) {
+			if !entering && node.NextSibling() != nil && !isNextSiblingList(node) && !isChildOfBlockquote(node) && !isChildOfListItem(node) {
 				buffer.WriteString("\n")
 			}
 		}
