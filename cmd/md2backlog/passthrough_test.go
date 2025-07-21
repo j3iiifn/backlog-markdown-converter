@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestPassthrough(t *testing.T) {
+func TestStdinStdoutConversion(t *testing.T) {
 	tests := []struct {
 		name     string
 		input    string
@@ -32,7 +32,7 @@ func TestPassthrough(t *testing.T) {
 		{
 			name:     "markdown text",
 			input:    "# Heading\n\n**Bold** text and *italic* text.",
-			expected: "# Heading\n\n**Bold** text and *italic* text.",
+			expected: "* Heading\n''Bold'' text and '''italic''' text.",
 		},
 	}
 
