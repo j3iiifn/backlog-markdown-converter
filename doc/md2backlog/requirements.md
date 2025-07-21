@@ -61,9 +61,6 @@ The following table details the required conversion rules from Markdown to Backl
 | | `![ALT](URL)` | `![ALT](URL)` | No change. |
 | | `---` | `---` | No change. |
 | | `|th1|...`<br>`|---|...`<br>`|td1|...` | `|*th1|...`<br`|td1|...` | Add `*` to header cells. |
-| **Unsupported** | `- [x] task` | `- task` | Convert to a regular list item. |
-| | `<br>` or other HTML | (Remove) | Ignore/remove all HTML tags. |
-| | `text[^1]` | `text[1]` | Convert footnote reference to plain text; place definitions at the end. |
 
 ---
 
